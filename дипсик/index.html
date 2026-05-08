@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="ru" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>COFFEE HUB | EXPERIENCE</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #050505; color: white; overflow-x: hidden; }
+        
+        /* ПРЕЛОАДЕР */
+        #loader { position: fixed; inset: 0; z-index: 9999; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: 0.8s cubic-bezier(0.65, 0, 0.35, 1); }
+        .cup-load { width: 50px; height: 50px; border: 3px solid rgba(255,77,0,0.2); border-top-color: #ff4d00; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* АНИМИРОВАННЫЙ ФОН */
+        .bg-glow { position: fixed; inset: 0; z-index: -1; background: radial-gradient(circle at 50% 50%, #111 0%, #050505 100%); }
+        .coffee-particle { position: absolute; background: rgba(255, 77, 0, 0.05); border-radius: 50%; pointer-events: none; animation: float infinite ease-in-out; }
+        @keyframes float { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-100px) rotate(180deg); } }
+
+        .glass { background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        .orange-gradient { background: linear-gradient(135deg, #ff4d00 0%, #ff8700 100%); }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        
+        /* ЗВЕЗДЫ */
+        .star-rating { color: #333; cursor: pointer; transition: 0.2s; }
+        .star-rating.active { color: #ff4d00; }
+    </style>
+</head>
+<body>
+
+    <!-- ПРЕЛОАДЕР -->
+    <div id="loader">
+        <div class="cup-load mb-4"></div>
+        <div class="text-xl font-black italic tracking-tighter">COFFEE<span class="text-orange-500">HUB</span></div>
+    </div>
+
+    <div class="bg-glow" id="particles"></div>
+
+    <!-- ЭКРАН ВХОДА -->
+    <div id="authScreen" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div class="glass w-full max-w-md p-10 rounded-[40px] text-center shadow-2xl">
+            <h1 class="text-4xl font-black italic mb-10">COFFEE<span class="text-orange-500">HUB</span></h1>
+            <div class="space-y-4">
+                <input id="uLogin" type="text" placeholder="Логин" class="w-full bg-white/5 border border-white/10 p-5 rounded-[22px] outline-none focus:border-orange-500 transition">
+                <input id="uPass" type="password" placeholder="Пароль" class="w-full bg-white/5 border border-white/10 p-5 rounded-[22px] outline-none focus:border-orange-500 transition">
+                <button onclick="login()" class="w-full orange-gradient py-5 rounded-[22px] font-black uppercase tracking-widest active:scale-95 transition">Войти</button>
+                <button onclick="register()" class="text-zinc-500 text-[10px] font-bold uppercase tracking-[0.2em]">Регистрация</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ОСНОВНОЙ КОНТЕНТ -->
+    <div id="app" class="hidden">
+        <!-- HEADER -->
+        <nav class="fixed top-0 left-0 right-0 z-50 glass border-b border-white/5 px-8 py-5">
+            <div class="max-w-7xl mx-auto flex justify-between items-center">
+                <div class="text-2xl font-black italic cursor-pointer" onclick="window.scrollTo(0,0)">C<span class="text-orange-500">H</span></div>
+                
+                <div class="hidden md:flex gap-10 text-[10px] font-black uppercase tracking-widest">
+                    <a href="#menu-section" class="hover:text-orange-500 transition">Меню</a>
+                    <a href="#about-section" class="hover:text-orange-500 transition">О нас</a>
+                    <a href="#reviews-section" class="hover:text-orange-500 transition">Отзывы</a>
+                </div>
+
+                <div class="flex items-center gap-4">
+                    <button id="adminBtn" onclick="toggleView('admin')" class="hidden bg-orange-500/10 text-orange-500 text-[9px] font-black px-4 py-2 rounded-lg border border-orange-500/20">ADMIN</button>
+                    <button onclick="openCart()" class="text-[10px] font-black uppercase bg-white text-black px-5 py-2.5 rounded-xl">Корзина (<span id="cartCount">0</span>)</button>
+                    <button onclick="location.reload()" class="text-zinc-500 hover:text-white transition text-lg">✕</button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- МАГАЗИН -->
+        <main id="storeView" class="pt-32">
+            <!-- Секция Меню -->
+            <section id="menu-section" class="max-w-7xl mx-auto px-8 mb-32">
+                <h2 class="text-6xl font-black italic mb-12 uppercase">Наше <span class="text-orange-500">Меню</span></h2>
+                <div id="grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"></div>
+            </section>
+
+            <!-- Секция О Нас -->
+            <section id="about-section" class="max-w-7xl mx-auto px-8 mb-32">
+                <div class="glass p-12 rounded-[50px] flex flex-col md:flex-row gap-12 items-center">
+                    <div class="flex-1">
+                        <span class="text-orange-500 font-black uppercase text-[10px] tracking-[0.5em] mb-4 block">Since 2024</span>
+                        <h2 class="text-5xl font-black italic mb-6 uppercase">Больше чем просто <span class="text-orange-500">кофе</span></h2>
+                        <p class="text-zinc-400 leading-relaxed mb-8">Мы отбираем лучшие зерна из Эфиопии и Бразилии, чтобы каждое ваше утро начиналось с идеального глотка. Наша миссия — создать пространство, где вкус встречается с эстетикой.</p>
+                        <div class="flex gap-8">
+                            <div><p class="text-2xl font-black italic">500+</p><p class="text-[9px] text-zinc-500 uppercase font-bold">Чашек в день</p></div>
+                            <div><p class="text-2xl font-black italic">12</p><p class="text-[9px] text-zinc-500 uppercase font-bold">Сортов зерна</p></div>
+                        </div>
+                    </div>
+                    <div class="w-full md:w-1/2 aspect-video bg-zinc-900 rounded-[30px] overflow-hidden">
+                        <img src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=800" class="w-full h-full object-cover opacity-60">
+                    </div>
+                </div>
+            </section>
+
+            <!-- Секция Отзывы -->
+            <section id="reviews-section" class="max-w-7xl mx-auto px-8 pb-32">
+                <div class="flex justify-between items-end mb-12">
+                    <h2 class="text-5xl font-black italic uppercase">Отзывы <span class="text-orange-500">Гостей</span></h2>
+                    <button onclick="toggleReviewForm()" class="bg-white/5 border border-white/10 px-6 py-3 rounded-xl text-[10px] font-black uppercase">Оставить отзыв</button>
+                </div>
+
+                <!-- Форма отзыва -->
+                <div id="reviewForm" class="hidden glass p-8 rounded-[30px] mb-12 fade-in">
+                    <div class="flex gap-2 mb-6" id="starInput">
+                        <span class="star-rating text-2xl" onclick="setRating(1)">★</span>
+                        <span class="star-rating text-2xl" onclick="setRating(2)">★</span>
+                        <span class="star-rating text-2xl" onclick="setRating(3)">★</span>
+                        <span class="star-rating text-2xl" onclick="setRating(4)">★</span>
+                        <span class="star-rating text-2xl" onclick="setRating(5)">★</span>
+                    </div>
+                    <textarea id="revText" placeholder="Ваши впечатления..." class="w-full bg-white/5 border border-white/10 p-5 rounded-2xl outline-none focus:border-orange-500 mb-4 h-32"></textarea>
+                    <button onclick="addReview()" class="orange-gradient px-8 py-4 rounded-xl font-black text-[10px] uppercase">Опубликовать</button>
+                </div>
+
+                <div id="reviewsGrid" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Фейковые отзывы летят сюда -->
+                </div>
+            </section>
+        </main>
+
+        <!-- АДМИНКА -->
+        <main id="adminView" class="hidden pt-32 max-w-7xl mx-auto px-8">
+            <div class="flex justify-between items-center mb-10">
+                <h2 class="text-4xl font-black italic uppercase">Управление заказов</h2>
+                <button onclick="clearHistory()" class="text-red-500 text-[10px] font-black uppercase">Очистить всё</button>
+            </div>
+            <div id="ordersList" class="space-y-4"></div>
+        </main>
+    </div>
+
+    <!-- КОРЗИНА (как в прошлом коде) -->
+    <div id="cartModal" class="fixed inset-0 z-[110] bg-black/95 hidden items-center justify-center p-4">
+        <div class="glass w-full max-w-md p-10 rounded-[45px] relative">
+            <button onclick="closeCart()" class="absolute top-8 right-8 text-zinc-500">✕</button>
+            <h3 class="text-2xl font-black uppercase italic mb-8">Корзина</h3>
+            <div id="cartItems" class="space-y-2 mb-8 max-h-[30vh] overflow-y-auto no-scrollbar pr-2"></div>
+            <div class="space-y-4 pt-6 border-t border-white/10">
+                <div class="flex p-1 bg-white/5 rounded-2xl">
+                    <button id="bPick" onclick="setDeliv(false)" class="flex-1 py-3 rounded-xl font-black text-[10px] uppercase bg-white text-black">Самовывоз</button>
+                    <button id="bDeliv" onclick="setDeliv(true)" class="flex-1 py-3 rounded-xl font-black text-[10px] uppercase text-zinc-500">Доставка</button>
+                </div>
+                <input id="cPhone" type="tel" placeholder="Номер телефона" class="w-full bg-white/5 border border-white/10 p-5 rounded-[22px] outline-none text-sm">
+                <input id="cAddr" type="text" placeholder="Адрес доставки" class="hidden w-full bg-white/5 border border-white/10 p-5 rounded-[22px] outline-none text-sm">
+                <div class="flex justify-between items-center py-4">
+                    <span class="text-[10px] font-black uppercase opacity-40">Итого:</span>
+                    <span id="cTotal" class="text-3xl font-black text-orange-500 italic">0 сум</span>
+                </div>
+                <button onclick="submitOrder()" class="w-full orange-gradient py-6 rounded-[22px] font-black uppercase tracking-widest active:scale-95 transition">Оформить заказ</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ЛОГИКА ЗАГРУЗКИ
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                document.getElementById('loader').style.opacity = '0';
+                setTimeout(() => document.getElementById('loader').style.display = 'none', 800);
+            }, 1500);
+        });
+
+        // АНИМАЦИЯ ФОНА
+        const particlesBox = document.getElementById('particles');
+        for(let i=0; i<20; i++) {
+            let p = document.createElement('div');
+            p.className = 'coffee-particle';
+            let size = Math.random() * 60 + 20;
+            p.style.width = size + 'px';
+            p.style.height = size + 'px';
+            p.style.left = Math.random() * 100 + '%';
+            p.style.top = Math.random() * 100 + '%';
+            p.style.animationDuration = (Math.random() * 10 + 5) + 's';
+            p.style.animationDelay = (Math.random() * 5) + 's';
+            particlesBox.appendChild(p);
+        }
+
+        const menu = [
+            { id: 1, name: "Iced Cappuccino", price: 32000, img: "https://images.unsplash.com/photo-1517701604599-bb28b3650422?w=500" },
+            { id: 2, name: "Vanilla Latte", price: 35000, img: "https://images.unsplash.com/photo-1595434066389-0bc300f62d3a?w=500" },
+            { id: 3, name: "Flat White", price: 28000, img: "https://images.unsplash.com/photo-1572442388796-11668a67e53d?w=500" },
+            { id: 4, name: "Matcha Latte", price: 38000, img: "https://images.unsplash.com/photo-1536815783710-534575d5f57a?w=500" },
+            { id: 5, name: "Espresso Tonic", price: 30000, img: "https://images.unsplash.com/photo-1510707577719-fa7413f076fe?w=500" },
+            { id: 6, name: "Caramel Macchiato", price: 42000, img: "https://images.unsplash.com/photo-1485808191679-5f6333c37c8a?w=500" },
+            { id: 7, name: "Raff Coffee", price: 39000, img: "https://images.unsplash.com/photo-1534778101976-62847782c213?w=500" },
+            { id: 8, name: "Cold Brew", price: 34000, img: "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500" }
+        ];
+
+        let fakeReviews = [
+            { name: "Алексей", text: "Самый вкусный флэт уайт в моей жизни! Рекомендую.", stars: 5 },
+            { name: "Мадина", text: "Атмосфера топ, но иногда много людей. Кофе 10/10.", stars: 4 },
+            { name: "Тимур", text: "Раф с лавандой — это нечто. Буду заходить чаще.", stars: 5 }
+        ];
+
+        let cart = [], isDeliv = false, currentUser = null, currentRating = 5;
+        let orders = JSON.parse(localStorage.getItem('ch_orders_db')) || [];
+        let users = JSON.parse(localStorage.getItem('ch_users_db')) || [{u:'admin', p:'7777', role:'master'}];
+
+        function login() {
+            const u = document.getElementById('uLogin').value, p = document.getElementById('uPass').value;
+            const found = users.find(x => x.u === u && x.p === p);
+            if(found) {
+                currentUser = found;
+                document.getElementById('authScreen').classList.add('hidden');
+                document.getElementById('app').classList.remove('hidden');
+                if(currentUser.role === 'master') document.getElementById('adminBtn').classList.remove('hidden');
+                renderStore();
+                renderReviews();
+            } else alert("Ошибка входа!");
+        }
+
+        function register() {
+            const u = document.getElementById('uLogin').value, p = document.getElementById('uPass').value;
+            if(!u || !p) return;
+            users.push({u, p, role: 'user'});
+            localStorage.setItem('ch_users_db', JSON.stringify(users));
+            alert("Зарегистрировано!");
+        }
+
+        function renderStore() {
+            document.getElementById('grid').innerHTML = menu.map(p => `
+                <div class="glass p-5 rounded-[35px] group">
+                    <div class="aspect-square rounded-[25px] overflow-hidden mb-6 bg-zinc-900">
+                        <img src="${p.img}" class="w-full h-full object-cover group-hover:scale-110 transition duration-700 opacity-80">
+                    </div>
+                    <h3 class="font-black italic text-xs uppercase mb-1">${p.name}</h3>
+                    <p class="text-orange-500 font-black text-lg mb-6">${p.price.toLocaleString()} сум</p>
+                    <button onclick="addToCart(${p.id})" class="w-full border border-white/10 py-4 rounded-xl font-black text-[8px] uppercase tracking-widest hover:bg-white hover:text-black transition">В корзину</button>
+                </div>
+            `).join('');
+        }
+
+        function renderReviews() {
+            document.getElementById('reviewsGrid').innerHTML = fakeReviews.map(r => `
+                <div class="glass p-8 rounded-[30px]">
+                    <div class="flex text-orange-500 mb-4 text-xs">${"★".repeat(r.stars)}${"☆".repeat(5-r.stars)}</div>
+                    <p class="text-zinc-400 text-sm italic mb-6">"${r.text}"</p>
+                    <p class="text-[9px] font-black uppercase tracking-widest">${r.name}</p>
+                </div>
+            `).join('');
+        }
+
+        function toggleReviewForm() { document.getElementById('reviewForm').classList.toggle('hidden'); }
+
+        function setRating(n) {
+            currentRating = n;
+            const stars = document.querySelectorAll('.star-rating');
+            stars.forEach((s, i) => s.classList.toggle('active', i < n));
+        }
+
+        function addReview() {
+            const text = document.getElementById('revText').value;
+            if(!text) return;
+            fakeReviews.unshift({ name: currentUser.u, text, stars: currentRating });
+            renderReviews();
+            document.getElementById('revText').value = '';
+            toggleReviewForm();
+        }
+
+        function addToCart(id) {
+            cart.push(menu.find(x => x.id === id));
+            document.getElementById('cartCount').innerText = cart.length;
+        }
+
+        function openCart() {
+            document.getElementById('cartModal').classList.remove('hidden');
+            document.getElementById('cartModal').classList.add('flex');
+            document.getElementById('cartItems').innerHTML = cart.map((x, i) => `
+                <div class="flex justify-between items-center bg-white/5 p-4 rounded-xl border border-white/5">
+                    <span class="text-[9px] font-black uppercase">${x.name}</span>
+                    <button onclick="removeFromCart(${i})" class="text-orange-500 text-[9px] font-bold uppercase">Удалить</button>
+                </div>
+            `).join('');
+            updateTotal();
+        }
+
+        function removeFromCart(i) { cart.splice(i, 1); openCart(); document.getElementById('cartCount').innerText = cart.length; }
+
+        function setDeliv(val) {
+            isDeliv = val;
+            document.getElementById('cAddr').classList.toggle('hidden', !val);
+            document.getElementById('bDeliv').className = val ? "flex-1 py-3 rounded-xl font-black text-[10px] uppercase bg-white text-black" : "flex-1 py-3 rounded-xl font-black text-[10px] uppercase text-zinc-500";
+            document.getElementById('bPick').className = !val ? "flex-1 py-3 rounded-xl font-black text-[10px] uppercase bg-white text-black" : "flex-1 py-3 rounded-xl font-black text-[10px] uppercase text-zinc-500";
+            updateTotal();
+        }
+
+        function updateTotal() {
+            let total = cart.reduce((s, x) => s + x.price, 0);
+            if(isDeliv && cart.length > 0) total += 15000;
+            document.getElementById('cTotal').innerText = total.toLocaleString() + ' сум';
+        }
+
+        function submitOrder() {
+            const phone = document.getElementById('cPhone').value, addr = document.getElementById('cAddr').value;
+            if(cart.length === 0 || !phone) return;
+            orders.push({
+                date: new Date().toLocaleString(),
+                userName: currentUser.u, phone,
+                address: isDeliv ? addr : "Самовывоз",
+                itemsList: cart.map(x => x.name).join(', '),
+                total: document.getElementById('cTotal').innerText
+            });
+            localStorage.setItem('ch_orders_db', JSON.stringify(orders));
+            alert("Заказ принят!"); cart = []; document.getElementById('cartCount').innerText = 0; closeCart();
+        }
+
+        function toggleView(view) {
+            document.getElementById('storeView').classList.toggle('hidden', view === 'admin');
+            document.getElementById('adminView').classList.toggle('hidden', view === 'store');
+            if(view === 'admin') renderAdminOrders();
+        }
+
+        function renderAdminOrders() {
+            document.getElementById('ordersList').innerHTML = orders.slice().reverse().map(o => `
+                <div class="glass p-6 rounded-[30px] border-l-4 border-orange-500 flex justify-between items-center">
+                    <div>
+                        <p class="text-[10px] font-black uppercase text-orange-500 mb-1">${o.userName} • ${o.date}</p>
+                        <h4 class="font-black text-sm uppercase">${o.itemsList}</h4>
+                        <p class="text-[9px] text-zinc-500 mt-2">ТЕЛ: ${o.phone} | АДРЕС: ${o.address}</p>
+                    </div>
+                    <div class="text-2xl font-black italic">${o.total}</div>
+                </div>
+            `).join('');
+        }
+
+        function clearHistory() { orders = []; localStorage.setItem('ch_orders_db', '[]'); renderAdminOrders(); }
+        function closeCart() { document.getElementById('cartModal').classList.add('hidden'); }
+    </script>
+</body>
+</html>
