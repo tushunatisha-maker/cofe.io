@@ -1,2 +1,0 @@
-# cofe.io
-cofe
